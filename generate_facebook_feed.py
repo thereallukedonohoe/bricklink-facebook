@@ -1,4 +1,4 @@
-# retry
+# forced refresh after full secret reset
 
 import os
 import csv
