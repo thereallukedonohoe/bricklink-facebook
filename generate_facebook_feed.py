@@ -3,6 +3,7 @@ import csv
 import requests
 from requests_oauthlib import OAuth1
 
+# BrickLink API credentials from GitHub Secrets
 auth = OAuth1(
     os.environ['BL_CONSUMER_KEY'],
     os.environ['BL_CONSUMER_SECRET'],
@@ -11,10 +12,21 @@ auth = OAuth1(
 )
 
 def get_inventory():
+    print("🔍 Fetching inventory from BrickLink...")
     r = requests.get("https://api.bricklink.com/api/store/v1/inventories", auth=auth)
+    print(f"🔁 Status Code: {r.status_code}")
+    try:
+        print("🧾 Response:", r.json())
+    except Exception as e:
+        print(f"❌ Error parsing JSON: {e}")
+        return []
     return r.json().get("data", [])
 
 inventory = get_inventory()
+
+if not inventory:
+    print("⚠️ No inventory returned — check API credentials or permissions.")
+    exit(1)
 
 with open("meta_product_feed.csv", "w", newline='') as f:
     writer = csv.DictWriter(f, fieldnames=[
@@ -43,6 +55,6 @@ with open("meta_product_feed.csv", "w", newline='') as f:
             "image_link": image
         })
 
-# Create index.html for GitHub Pages activation
+# Create index.html so GitHub Pages has something to show
 with open("index.html", "w") as index:
     index.write("<!DOCTYPE html><html><head><meta http-equiv='refresh' content='0; url=meta_product_feed.csv'></head><body></body></html>")
